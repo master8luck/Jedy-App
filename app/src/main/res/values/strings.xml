@@ -18,4 +18,24 @@
     <string name="open_favorites">Open favorites</string>
     <string name="open_sample_movie">Open sample movie</string>
     <string name="back">Back</string>
+    <string name="discover_title">Discover</string>
+    <string name="discover_subtitle">A small search. A great film.</string>
+    <string name="search_idle_title">What will you watch next?</string>
+    <string name="search_empty_hint">Try a different title or a more specific keyword.</string>
+    <string name="search_error_title">Search paused</string>
+    <string name="movie_details_overline">IN THE SPOTLIGHT</string>
+    <string name="favorite_explanation">Keep this title in your collection. Saved movie details are available even when you are offline.</string>
+    <string name="add_favorite">Save to favorites</string>
+    <string name="remove_favorite">Remove from favorites</string>
+    <string name="remove_favorite_title">Remove %1$s from favorites</string>
+    <string name="favorites_subtitle">Your collection, ready when you are.</string>
+    <string name="favorites_empty_title">Make room for your favorites</string>
+    <string name="favorites_empty_hint">Open a movie and save it here. Your collection stays on this device.</string>
+    <string name="details_error">Could not open this movie</string>
+    <string name="details_error_hint">Check your connection and try again.</string>
+    <string name="save_error">Could not update your collection. Please try again.</string>
+    <string name="appearance">Appearance</string>
+    <string name="theme_system">Follow system</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 </resources>

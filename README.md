@@ -21,7 +21,7 @@ no HTTP logs.
 
 Search is connected to the repository through a Hilt-created ViewModel. Type a
 movie title to search after a 350 ms pause, or use the keyboard Search action.
-Details and Favorites remain placeholders. Search currently loads only page one.
+Details loads movie metadata and supports saving/removing favorites. Room persists the collection locally; saved metadata opens offline. Search currently loads only page one.
 No automatic request runs at application startup.
 
 - `NetworkModule`: creates the JSON converter, HTTP client and OMDb API.
@@ -31,6 +31,8 @@ No automatic request runs at application startup.
 - `SearchRoute`: obtains the entry-scoped ViewModel and collects state with lifecycle awareness.
 - `SearchViewModel`: saves the query, cancels superseded work and exposes UI state.
 - `SearchScreen`: renders state and emits callbacks; it does not perform requests.
+
+Appearance supports persisted System, Light and Dark modes. At 900 dp and wider, Nav3 shows the selected movie beside its source list. Long titles wrap, and Details scrolls.
 
 Domain and data are packages inside `:app`. `:SDK` is the separate ads module.
 Domain code does not depend on Hilt, Retrofit, Room or Compose.
