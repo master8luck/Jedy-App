@@ -11,7 +11,9 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+
     @Binds
     @Singleton
     abstract fun bindMovieRepository(implementation: OmdbMovieRepository): MovieRepository
+
 }

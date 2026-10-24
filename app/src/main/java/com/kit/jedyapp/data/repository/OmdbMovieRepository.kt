@@ -11,6 +11,7 @@ import javax.inject.Inject
 class OmdbMovieRepository @Inject constructor(
     private val api: OmdbApi,
 ) : MovieRepository {
+
     override suspend fun searchMovies(query: String, page: Int): SearchPage {
         require(query.isNotBlank()) { "Search query must not be blank." }
         require(page in 1..100) { "OMDb page must be between 1 and 100." }
@@ -21,10 +22,9 @@ class OmdbMovieRepository @Inject constructor(
         if (result.response != "True") {
             throw MovieDataException(result.error ?: "Movie search failed.")
         }
-        val movies = result.movies
-            ?: throw MovieDataException("Search results are missing.")
-        val total = result.totalResults?.toIntOrNull()?.takeIf { it >= movies.size }
-            ?: throw MovieDataException("Search result count is invalid.")
+
+        val movies = result.movies ?: throw MovieDataException("Search results are missing.")
+        val total = result.totalResults?.toIntOrNull()?.takeIf { it >= movies.size } ?: throw MovieDataException("Search result count is invalid.")
         return SearchPage(movies.map { it.toMovie() }, total)
     }
 
@@ -36,4 +36,5 @@ class OmdbMovieRepository @Inject constructor(
         }
         return result.toMovie()
     }
+
 }

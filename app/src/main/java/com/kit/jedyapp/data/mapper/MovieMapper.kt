@@ -5,10 +5,9 @@ import com.kit.jedyapp.domain.model.Movie
 import com.kit.jedyapp.domain.model.MovieDataException
 
 internal fun OmdbMovieResponse.toMovie(): Movie {
-    val id = imdbId?.takeIf { it.isNotBlank() }
-        ?: throw MovieDataException("Movie ID is missing.")
-    val movieTitle = title?.takeIf { it.isNotBlank() }
-        ?: throw MovieDataException("Movie title is missing.")
+    val id = imdbId?.takeIf { it.isNotBlank() } ?: throw MovieDataException("Movie ID is missing.")
+    val movieTitle = title?.takeIf { it.isNotBlank() } ?: throw MovieDataException("Movie title is missing.")
+
     return Movie(
         id = id,
         title = movieTitle,
