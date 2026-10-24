@@ -1,0 +1,28 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Generated module outputs and Kotlin caches
+**/build/
+.kotlin/
+# Local signing and credentials
+*.jks
+*.keystore
+.env
+.env.*
+secrets.properties
+
+# Local Android Studio project metadata
+.idea/

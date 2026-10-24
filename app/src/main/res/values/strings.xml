@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Jedy App</string>
+    <string name="search_title">Search</string>
+    <string name="favorites_title">Favorites</string>
+    <string name="details_title">Movie details</string>
+    <string name="search_placeholder">Movie search will appear here.</string>
+    <string name="favorites_placeholder">Saved movies will appear here.</string>
+    <string name="details_placeholder">Movie ID: %1$s</string>
+    <string name="open_favorites">Open favorites</string>
+    <string name="open_sample_movie">Open sample movie</string>
+    <string name="back">Back</string>
+</resources>
