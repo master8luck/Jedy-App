@@ -1,54 +1,77 @@
 # Jedy App
 
-Android movie-search assignment using Compose and Navigation 3.
+Movie search assignment built with Kotlin, Compose, Navigation 3, Hilt and Room.
 
-## Setup
+## Run
 
-Open the project in Android Studio. Add your OMDb key to the existing
-`local.properties` (this file is ignored by Git), then sync and rebuild:
+Open in Android Studio. Add your OMDb key to the existing ignored
+`local.properties`, sync, then run the `app` configuration:
 
 ```properties
 OMDB_API_KEY=your_key
 ```
 
-The key is required when making requests, not to build or open the placeholder
-screens. It is compiled into the APK; local configuration keeps it out of Git,
-but does not make an APK-embedded key secret. Debug builds log HTTP request/response headers and bodies to Logcat
-(OkHttp), including API keys and credential headers without redaction. Release builds emit
-no HTTP logs.
+Keys are not committed. An APK-embedded key is still extractable.
+Debug builds log complete OMDb requests, headers and bodies without redaction,
+as requested. Release builds emit no HTTP logs.
 
-## Current step
+## Features
 
-Search is connected to the repository through a Hilt-created ViewModel. Type a
-movie title to search after a 350 ms pause, or use the keyboard Search action.
-Details loads movie metadata and supports saving/removing favorites. Room persists the collection locally; saved metadata opens offline. Search currently loads only page one.
-No automatic request runs at application startup.
+- Debounced search with immediate keyboard Search, cancellation, retry and paging.
+- Movie details with poster, title, year/type and a favorite action.
+- Room-backed favorites. Saved metadata opens offline; posters use Coil caching
+  and show a fallback when unavailable.
+- Persistent System/Light/Dark appearance, scalable text and scrollable details.
+- One Nav3 back stack: single pane on compact windows, list/detail at 900 dp+.
+- Native and interstitial AdMob demo ads through a separate `SDK` module.
 
-- `NetworkModule`: creates the JSON converter, HTTP client and OMDb API.
-- `RepositoryModule`: binds the repository interface to its implementation.
-- `OmdbMovieRepository`: calls the API and maps responses to domain models.
-- `MovieMapper`: validates required fields and handles unavailable posters.
-- `SearchRoute`: obtains the entry-scoped ViewModel and collects state with lifecycle awareness.
-- `SearchViewModel`: saves the query, cancels superseded work and exposes UI state.
-- `SearchScreen`: renders state and emits callbacks; it does not perform requests.
+## Architecture
 
-Appearance supports persisted System, Light and Dark modes. At 900 dp and wider, Nav3 shows the selected movie beside its source list. Long titles wrap, and Details scrolls.
+`:app` contains domain contracts/models, data implementations and UI feature
+packages. `:SDK` owns provider integration, ad rendering, lifecycle and policy.
+This keeps the assignment lean; features do not each have their own modules.
 
-Domain and data are packages inside `:app`. `:SDK` is the separate ads module.
-Domain code does not depend on Hilt, Retrofit, Room or Compose.
+ViewModels use repository interfaces. Room is the source of truth for favorites.
+Retrofit DTOs map to domain models, and provider-specific ad objects stay in SDK.
+Hilt's `NetworkModule`, `DatabaseModule`, `RepositoryModule` and `AdsModule`
+are the dependency composition points. Screens receive state and callbacks;
+routes collect lifecycle-aware state.
 
-Search with no matches returns an empty page. Other OMDb failures throw
-`MovieDataException`; HTTP/network failures propagate. Cancellation is not caught.
-The Search ViewModel translates failures into retryable UI states and preserves cancellation.
+## Ad assumptions
+
+The assignment leaves these behaviors open to interpretation:
+
+- Indexes are zero-based in the final feed: movie, ad, movie, ad, movie.
+  Both slots are present only when there are at least three movie results.
+  Paging does not add further ad slots.
+- Initial launch is excluded. The second later process-foreground entry is the
+  one interstitial opportunity. The counter is persisted, including relaunches.
+  Rotation, resizing and internal navigation do not count.
+- If the interstitial is unavailable at that return, the opportunity is consumed
+  and skipped. It is never shown later in the session.
+- Native no-fill hides the slot. Ad objects are released on disposal, including
+  a load that finishes after its owner disappears.
+- All variants use Google's demo app/ad unit IDs. No real AdMob credentials are
+  needed for evaluation. Real monetization/consent configuration is outside this
+  assignment; demo IDs must be replaced before a monetized release.
+
+Another provider implements `AdsProvider` and `NativeAdHandle`; app/domain code
+does not need a Google SDK dependency.
 
 ## Verification
 
 ```shell
-./gradlew :app:assembleDebug :app:testDebugUnitTest
+./gradlew :app:assembleDebug :app:testDebugUnitTest :SDK:testDebugUnitTest
+./gradlew :app:connectedDebugAndroidTest
 ```
 
-Local HTTP tests use MockWebServer and a fake API key; they do not contact OMDb.
-They cover encoded queries, authentication, JSON mapping, empty results, API
-errors, HTTP errors and missing poster/required fields.
-Search ViewModel tests cover debounce, immediate submit, clearing, stale responses,
-retry, service errors, restored query and whitespace-only edits.
+Unit tests cover HTTP mapping/errors, cancellation/debounce/retry/paging,
+details/offline favorites, ad positions, return eligibility and logging policy.
+Emulator tests cover Room uniqueness/removal and long-title/large-font layouts.
+Tests use fake keys/data; no real OMDb calls are required by the test suite.
+
+## Deliberate scope
+
+No accounts, recommendations, ratings, filters, background work or extra use-case
+wrappers. Favorites are device-local. OMDb allows pages 1–100; results are loaded
+on demand. The project keeps two modules instead of speculative feature modules.

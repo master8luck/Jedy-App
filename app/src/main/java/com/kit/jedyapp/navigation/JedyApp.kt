@@ -16,10 +16,11 @@ import com.kit.jedyapp.feature.details.DetailsRoute
 import com.kit.jedyapp.feature.favorites.FavoritesRoute
 import com.kit.jedyapp.feature.search.SearchRoute
 import com.kit.jedyapp.ui.theme.ThemeMode
+import com.kit.jedyapp.sdk.api.AdsProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit) {
+fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit, adsProvider: AdsProvider) {
     val backStack = rememberNavBackStack(Search)
     var themeMenu by remember { mutableStateOf(false) }
     val goBack: () -> Unit = { if (backStack.size > 1) backStack.removeLastOrNull() }
@@ -91,7 +92,7 @@ fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit) {
                     rememberViewModelStoreNavEntryDecorator(),
                 ),
                 entryProvider = entryProvider {
-                    entry<Search>(metadata = metadata { put(ListPane, true) }) { SearchRoute(onMovieClick = openMovie) }
+                    entry<Search>(metadata = metadata { put(ListPane, true) }) { SearchRoute(onMovieClick = openMovie, adsProvider = adsProvider) }
                     entry<Favorites>(metadata = metadata { put(ListPane, true) }) { FavoritesRoute(onMovieClick = openMovie) }
                     entry<MovieDetails>(metadata = metadata { put(DetailPane, true) }) { destination -> DetailsRoute(destination.imdbId) }
                 },

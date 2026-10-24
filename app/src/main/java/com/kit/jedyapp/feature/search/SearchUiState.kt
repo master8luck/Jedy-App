@@ -7,7 +7,10 @@ data class SearchUiState(val query: String = "", val content: SearchContent = Se
 sealed interface SearchContent {
     data object Idle : SearchContent
     data object Loading : SearchContent
-    data class Results(val movies: List<Movie>, val totalResults: Int) : SearchContent
+    data class Results(
+        val movies: List<Movie>, val totalResults: Int,
+        val page: Int = 1, val loadingMore: Boolean = false, val appendError: Boolean = false,
+    ) : SearchContent
     data class Error(val reason: SearchError) : SearchContent
 }
 

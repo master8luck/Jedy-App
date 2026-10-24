@@ -130,12 +130,48 @@ class SearchViewModelTest {
         assertEquals(" movie ", viewModel.state.value.query)
     }
 
+
+    @Test
+    fun `pagination appends unique movies and advances the page`() = runTest(dispatcher) {
+        val first = Movie("tt1", "One", "", "", null)
+        val second = Movie("tt2", "Two", "", "", null)
+        repository.search = {
+            if (repository.queries.size == 1) SearchPage(listOf(first), 3)
+            else SearchPage(listOf(first, second), 3)
+        }
+        viewModel.onQueryChanged("movie"); viewModel.onSearch(); runCurrent()
+        viewModel.loadMore(); runCurrent()
+        val result = viewModel.state.value.content as SearchContent.Results
+        assertEquals(listOf(first, second), result.movies)
+        assertEquals(2, result.page)
+        assertEquals(listOf(1, 2), repository.pages)
+    }
+
+    @Test
+    fun `pagination failure keeps results and retries the same page`() = runTest(dispatcher) {
+        val first = Movie("tt1", "One", "", "", null)
+        repository.search = {
+            if (repository.queries.size == 2) throw IOException("offline")
+            SearchPage(listOf(first), 2)
+        }
+        viewModel.onQueryChanged("movie"); viewModel.onSearch(); runCurrent()
+        viewModel.loadMore(); runCurrent()
+        val failed = viewModel.state.value.content as SearchContent.Results
+        assertTrue(failed.appendError)
+        assertEquals(listOf(first), failed.movies)
+        viewModel.loadMore(); runCurrent()
+        assertFalse((viewModel.state.value.content as SearchContent.Results).appendError)
+        assertEquals(listOf(1, 2, 2), repository.pages)
+    }
+
     private class FakeMovieRepository : MovieRepository {
         val queries = mutableListOf<String>()
+        val pages = mutableListOf<Int>()
         var search: suspend (String) -> SearchPage = { SearchPage(emptyList(), 0) }
 
         override suspend fun searchMovies(query: String, page: Int): SearchPage {
             queries += query
+            pages += page
             return search(query)
         }
 

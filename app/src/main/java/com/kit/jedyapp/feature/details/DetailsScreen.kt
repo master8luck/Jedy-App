@@ -43,7 +43,7 @@ fun DetailsScreen(
         )
         else -> state.movie?.let { movie ->
             BoxWithConstraints(modifier.fillMaxSize()) {
-                val wide = maxWidth >= 600.dp
+                val wide = maxWidth >= 480.dp
                 val text: @Composable ColumnScope.() -> Unit = {
                     Text(stringResource(R.string.movie_details_overline), style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary)

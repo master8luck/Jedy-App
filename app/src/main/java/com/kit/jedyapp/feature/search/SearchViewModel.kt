@@ -44,6 +44,32 @@ class SearchViewModel @Inject constructor(
     /** Keyboard Search and retry bypass the typing debounce. */
     fun onSearch() = startSearch(debounce = false)
 
+
+    fun loadMore() {
+        val current = state.value.content as? SearchContent.Results ?: return
+        if (current.loadingMore || current.movies.size >= current.totalResults || current.page >= 100) return
+        val query = state.value.query.trim()
+        mutableState.update { it.copy(content = current.copy(loadingMore = true, appendError = false)) }
+        searchJob = viewModelScope.launch {
+            val content = try {
+                val next = movieRepository.searchMovies(query, current.page + 1)
+                current.copy(
+                    movies = (current.movies + next.movies).distinctBy { it.id },
+                    totalResults = next.totalResults,
+                    page = current.page + 1,
+                    loadingMore = false,
+                    appendError = false,
+                )
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                current.copy(loadingMore = false, appendError = true)
+            }
+            ensureActive()
+            mutableState.update { it.copy(content = content) }
+        }
+    }
+
     private fun startSearch(debounce: Boolean) {
         searchJob?.cancel()
         val query = state.value.query.trim()

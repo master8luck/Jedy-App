@@ -38,4 +38,6 @@
     <string name="theme_system">Follow system</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="load_more">Load more movies</string>
+    <string name="load_more_retry">Retry loading more</string>
 </resources>

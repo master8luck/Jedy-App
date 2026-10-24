@@ -17,6 +17,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.kit.jedyapp.R
+import com.kit.jedyapp.sdk.policy.FeedEntry
+import com.kit.jedyapp.sdk.policy.buildAdFeed
 import com.kit.jedyapp.ui.components.MovieCard
 import com.kit.jedyapp.ui.components.SectionHeading
 import com.kit.jedyapp.ui.components.StateMessage
@@ -28,6 +30,8 @@ fun SearchScreen(
     onSearch: () -> Unit,
     onMovieClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    nativeAd: @Composable (Int) -> Unit = {},
+    onLoadMore: () -> Unit = {},
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val listState = rememberSaveable(state.query.trim(), saver = LazyListState.Saver) { LazyListState() }
@@ -80,8 +84,33 @@ fun SearchScreen(
                         contentPadding = PaddingValues(bottom = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        items(content.movies, key = { it.id }, contentType = { "movie" }) { movie ->
-                            MovieCard(movie, onClick = { keyboard?.hide(); onMovieClick(movie.id) })
+                        items(
+                            buildAdFeed(content.movies),
+                            key = { entry -> when (entry) {
+                                is FeedEntry.Content -> entry.value.id
+                                is FeedEntry.Native -> "native:${entry.slot}"
+                            } },
+                            contentType = { if (it is FeedEntry.Native) "native" else "movie" },
+                        ) { entry ->
+                            when (entry) {
+                                is FeedEntry.Content -> MovieCard(entry.value,
+                                    onClick = { keyboard?.hide(); onMovieClick(entry.value.id) })
+                                is FeedEntry.Native -> nativeAd(entry.slot)
+                            }
+                        }
+                        if (content.movies.size < content.totalResults && content.page < 100) {
+                            item(key = "load-more", contentType = "footer") {
+                                OutlinedButton(
+                                    onClick = onLoadMore, enabled = !content.loadingMore,
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    Text(stringResource(when {
+                                        content.loadingMore -> R.string.search_loading
+                                        content.appendError -> R.string.load_more_retry
+                                        else -> R.string.load_more
+                                    }))
+                                }
+                            }
                         }
                     }
                 }
