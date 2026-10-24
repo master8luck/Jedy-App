@@ -1,10 +1,12 @@
 package com.kit.jedyapp.data.remote
 
-/** Wire field names match OMDb; converter configuration follows later. */
-@Suppress("PropertyName")
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class OmdbSearchResponse(
-    val Search: List<OmdbMovieResponse>? = null,
+    @SerialName("Search") val movies: List<OmdbMovieResponse>? = null,
     val totalResults: String? = null,
-    val Response: String,
-    val Error: String? = null,
+    @SerialName("Response") val response: String,
+    @SerialName("Error") val error: String? = null,
 )

@@ -1,0 +1,144 @@
+package com.kit.jedyapp.feature.search
+
+import androidx.lifecycle.SavedStateHandle
+import com.kit.jedyapp.domain.model.Movie
+import com.kit.jedyapp.domain.model.MovieDataException
+import com.kit.jedyapp.domain.model.SearchPage
+import com.kit.jedyapp.domain.repository.MovieRepository
+import java.io.IOException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.test.*
+import kotlinx.coroutines.withContext
+import org.junit.After
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+class SearchViewModelTest {
+    private val dispatcher = StandardTestDispatcher()
+    private lateinit var repository: FakeMovieRepository
+    private lateinit var viewModel: SearchViewModel
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(dispatcher)
+        repository = FakeMovieRepository()
+        viewModel = SearchViewModel(repository, SavedStateHandle())
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `typing is debounced and sends only the latest trimmed query`() = runTest(dispatcher) {
+        viewModel.onQueryChanged("lo")
+        runCurrent()
+        advanceTimeBy(200)
+        viewModel.onQueryChanged(" love ")
+        runCurrent()
+        advanceTimeBy(349)
+        assertTrue(repository.queries.isEmpty())
+        advanceTimeBy(1)
+        runCurrent()
+        assertEquals(listOf("love"), repository.queries)
+        assertTrue(viewModel.state.value.content is SearchContent.Results)
+    }
+
+    @Test
+    fun `keyboard search bypasses debounce without a duplicate request`() = runTest(dispatcher) {
+        viewModel.onQueryChanged("movie")
+        viewModel.onSearch()
+        runCurrent()
+        assertEquals(listOf("movie"), repository.queries)
+        advanceUntilIdle()
+        assertEquals(1, repository.queries.size)
+    }
+
+    @Test
+    fun `clearing cancels pending work and restores idle`() = runTest(dispatcher) {
+        viewModel.onQueryChanged("movie")
+        runCurrent()
+        viewModel.onQueryChanged(" ")
+        advanceUntilIdle()
+        assertTrue(repository.queries.isEmpty())
+        assertEquals(SearchContent.Idle, viewModel.state.value.content)
+    }
+
+    @Test
+    fun `old response cannot overwrite a newer search`() = runTest(dispatcher) {
+        repository.search = { query ->
+            if (query == "old") withContext(NonCancellable) { delay(1000) }
+            SearchPage(listOf(Movie(query, query, "", "", null)), 1)
+        }
+        viewModel.onQueryChanged("old")
+        viewModel.onSearch()
+        runCurrent()
+        viewModel.onQueryChanged("new")
+        viewModel.onSearch()
+        runCurrent()
+        advanceUntilIdle()
+        val result = viewModel.state.value.content as SearchContent.Results
+        assertEquals("new", result.movies.single().id)
+    }
+
+    @Test
+    fun `network error can be retried successfully`() = runTest(dispatcher) {
+        repository.search = { throw IOException("offline") }
+        viewModel.onQueryChanged("movie")
+        viewModel.onSearch()
+        runCurrent()
+        assertEquals(SearchContent.Error(SearchError.Network), viewModel.state.value.content)
+        repository.search = { SearchPage(emptyList(), 0) }
+        viewModel.onSearch()
+        runCurrent()
+        assertEquals(SearchContent.Results(emptyList(), 0), viewModel.state.value.content)
+        assertEquals(listOf("movie", "movie"), repository.queries)
+    }
+
+    @Test
+    fun `service rejection becomes service error state`() = runTest(dispatcher) {
+        repository.search = { throw MovieDataException("Invalid API key!") }
+        viewModel.onQueryChanged("movie")
+        viewModel.onSearch()
+        runCurrent()
+        assertEquals(SearchContent.Error(SearchError.Service), viewModel.state.value.content)
+    }
+
+    @Test
+    fun `restored query is searched and edits are saved`() = runTest(dispatcher) {
+        val handle = SavedStateHandle(mapOf("searchQuery" to "saved"))
+        val restored = SearchViewModel(repository, handle)
+        advanceUntilIdle()
+        assertEquals(listOf("saved"), repository.queries)
+        restored.onQueryChanged("changed")
+        assertEquals("changed", handle.get<String>("searchQuery"))
+        advanceUntilIdle()
+    }
+
+    @Test
+    fun `whitespace edits do not repeat identical search`() = runTest(dispatcher) {
+        viewModel.onQueryChanged("movie")
+        advanceUntilIdle()
+        viewModel.onQueryChanged(" movie ")
+        advanceUntilIdle()
+        assertEquals(listOf("movie"), repository.queries)
+        assertEquals(" movie ", viewModel.state.value.query)
+    }
+
+    private class FakeMovieRepository : MovieRepository {
+        val queries = mutableListOf<String>()
+        var search: suspend (String) -> SearchPage = { SearchPage(emptyList(), 0) }
+
+        override suspend fun searchMovies(query: String, page: Int): SearchPage {
+            queries += query
+            return search(query)
+        }
+
+        override suspend fun getMovie(id: String): Movie = error("Not used in search tests")
+    }
+}

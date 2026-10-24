@@ -12,7 +12,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.kit.jedyapp.feature.details.DetailsScreen
 import com.kit.jedyapp.feature.favorites.FavoritesScreen
-import com.kit.jedyapp.feature.search.SearchScreen
+import com.kit.jedyapp.feature.search.SearchRoute
 
 @Composable
 fun JedyApp() {
@@ -33,7 +33,7 @@ fun JedyApp() {
             ),
             entryProvider = entryProvider {
                 entry<Search> {
-                    SearchScreen(
+                    SearchRoute(
                         onFavoritesClick = { backStack.add(Favorites) },
                         onMovieClick = { id -> backStack.add(MovieDetails(id)) },
                     )

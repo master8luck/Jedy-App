@@ -1,14 +1,16 @@
 package com.kit.jedyapp.data.remote
 
-/**
- * Endpoint declarations only. HTTP client and JSON conversion follow later.
- * Base URL: https://www.omdbapi.com/
- * The eventual client supplies the API key.
- */
-interface OmdbApi {
-    /** GET /?s={query}&page={page}&apikey={key} */
-    suspend fun searchMovies(query: String, page: Int = 1): OmdbSearchResponse
+import retrofit2.http.GET
+import retrofit2.http.Query
 
-    /** GET /?i={imdbId}&apikey={key} */
-    suspend fun getMovie(imdbId: String): OmdbMovieResponse
+/** API key is attached by the HTTP client, not passed through the domain layer. */
+interface OmdbApi {
+    @GET(".")
+    suspend fun searchMovies(
+        @Query("s") query: String,
+        @Query("page") page: Int = 1,
+    ): OmdbSearchResponse
+
+    @GET(".")
+    suspend fun getMovie(@Query("i") imdbId: String): OmdbMovieResponse
 }
