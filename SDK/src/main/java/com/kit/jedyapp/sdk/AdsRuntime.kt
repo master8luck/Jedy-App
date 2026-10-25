@@ -36,6 +36,7 @@ class AdsRuntime(
         preferences.edit().putBoolean("launched", decision.state.launched)
             .putInt("returns", decision.state.returns).apply()
         eligibleThisReturn = decision.eligible
+        adDebug("Foreground: returns=${decision.state.returns}, eligible=${decision.eligible}")
         if (decision.state.returns < 2) provider.preloadInterstitial()
     }
 
@@ -46,7 +47,8 @@ class AdsRuntime(
         if (eligibleThisReturn) {
             eligibleThisReturn = false
             // Skip when not loaded; never interrupt later in the user's session.
-            provider.showInterstitial(activity)
+            val shown = provider.showInterstitial(activity)
+            adDebug("Second-return opportunity consumed: shown=$shown")
         }
     }
     override fun onActivityCreated(activity: Activity, state: Bundle?) = Unit

@@ -8,6 +8,7 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.kit.jedyapp.sdk.api.AdsProvider
+import com.kit.jedyapp.sdk.adDebug
 import com.kit.jedyapp.sdk.api.NativeAdHandle
 
 /** Demo units intentionally used for the assignment, in every build variant. */
@@ -58,23 +59,32 @@ class AdMobProvider(context: Context) : AdsProvider {
                         loadingInterstitial = false
                         interstitial = ad
                         loadedAt = android.os.SystemClock.elapsedRealtime()
+                        adDebug("Interstitial loaded")
                     }
                     override fun onAdFailedToLoad(error: LoadAdError) {
                         loadingInterstitial = false
+                        adDebug("Interstitial load failed: code=${error.code}, ${error.message}")
                     }
                 })
         }
     }
 
     override fun showInterstitial(activity: Activity): Boolean {
-        val ad = interstitial ?: return false
+        val ad = interstitial ?: run {
+            adDebug("Interstitial skipped: not loaded")
+            return false
+        }
         interstitial = null
         if (activity.isFinishing || activity.isDestroyed ||
-            android.os.SystemClock.elapsedRealtime() - loadedAt >= 3_600_000L) return false
+            android.os.SystemClock.elapsedRealtime() - loadedAt >= 3_600_000L) {
+            adDebug("Interstitial skipped: invalid host or expired ad")
+            return false
+        }
         ad.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() { ad.fullScreenContentCallback = null }
             override fun onAdFailedToShowFullScreenContent(error: AdError) { ad.fullScreenContentCallback = null }
         }
+        adDebug("Showing interstitial")
         ad.show(activity)
         return true
     }

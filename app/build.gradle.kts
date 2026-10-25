@@ -28,6 +28,8 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
+        manifestPlaceholders["nativeAdValidatorEnabled"] =
+            providers.gradleProperty("nativeAdValidator").getOrElse("false")
         buildConfigField(
             "String",
             "OMDB_API_KEY",

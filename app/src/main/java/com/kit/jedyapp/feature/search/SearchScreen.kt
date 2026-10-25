@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -80,7 +81,7 @@ fun SearchScreen(
                     Text(stringResource(R.string.search_result_count, content.movies.size, content.totalResults),
                         style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     LazyColumn(
-                        modifier = Modifier.weight(1f).fillMaxWidth(), state = listState,
+                        modifier = Modifier.weight(1f).fillMaxWidth().clipToBounds(), state = listState,
                         contentPadding = PaddingValues(bottom = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                     ) {

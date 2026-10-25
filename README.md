@@ -75,3 +75,34 @@ Tests use fake keys/data; no real OMDb calls are required by the test suite.
 No accounts, recommendations, ratings, filters, background work or extra use-case
 wrappers. Favorites are device-local. OMDb allows pages 1–100; results are loaded
 on demand. The project keeps two modules instead of speculative feature modules.
+
+## Replaying the return-ad test
+
+The interstitial opportunity is once per installation's stored history, not
+every second return. A previous test can consume it even if a later session
+has a loaded ad. Debug lifecycle messages use the Logcat tag `JedyAds`.
+
+To replay without deleting favorites, appearance or the API key:
+
+```shell
+adb shell am force-stop com.kit.jedyapp
+adb shell run-as com.kit.jedyapp rm -f shared_prefs/ad_returns.xml
+adb shell am start -n com.kit.jedyapp/.MainActivity
+```
+
+Wait for `Interstitial loaded` in Logcat. Press Home, wait at least one second,
+and reopen: first return, no interstitial. Repeat: second return, show the ad
+if available. If unavailable, diagnostics explain why it was skipped; there is
+no delayed ad later in the session.
+
+The dismissible Native Validator window is Google test tooling. It is not
+part of a native creative and does not appear on live ad requests. It is
+disabled by default so it cannot cover Search during normal manual testing.
+To enable it when checking native-ad compliance:
+
+```shell
+./gradlew :app:assembleDebug -PnativeAdValidator=true
+```
+
+List/native view content is clipped to its viewport. This does not attempt to
+clip external SDK windows, ad destinations or full-screen ad experiences.
