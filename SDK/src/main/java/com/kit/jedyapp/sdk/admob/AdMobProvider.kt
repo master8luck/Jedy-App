@@ -7,8 +7,8 @@ import android.os.Looper
 import com.google.android.gms.ads.*
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.kit.jedyapp.sdk.api.AdsProvider
 import com.kit.jedyapp.sdk.adDebug
+import com.kit.jedyapp.sdk.api.AdsProvider
 import com.kit.jedyapp.sdk.api.NativeAdHandle
 
 /** Demo units intentionally used for the assignment, in every build variant. */
@@ -51,6 +51,9 @@ class AdMobProvider(context: Context) : AdsProvider {
     }
 
     override fun preloadInterstitial() = whenReady {
+        if (interstitial != null && isInterstitialExpired(loadedAt, android.os.SystemClock.elapsedRealtime())) {
+            interstitial = null
+        }
         if (!loadingInterstitial && interstitial == null) {
             loadingInterstitial = true
             InterstitialAd.load(context, INTERSTITIAL_UNIT, AdRequest.Builder().build(),
@@ -76,7 +79,7 @@ class AdMobProvider(context: Context) : AdsProvider {
         }
         interstitial = null
         if (activity.isFinishing || activity.isDestroyed ||
-            android.os.SystemClock.elapsedRealtime() - loadedAt >= 3_600_000L) {
+            isInterstitialExpired(loadedAt, android.os.SystemClock.elapsedRealtime())) {
             adDebug("Interstitial skipped: invalid host or expired ad")
             return false
         }
@@ -94,3 +97,8 @@ class AdMobProvider(context: Context) : AdsProvider {
         const val INTERSTITIAL_UNIT = "ca-app-pub-3940256099942544/1033173712"
     }
 }
+
+private const val INTERSTITIAL_MAX_AGE_MS = 3_600_000L
+
+internal fun isInterstitialExpired(loadedAt: Long, now: Long): Boolean =
+    now - loadedAt >= INTERSTITIAL_MAX_AGE_MS

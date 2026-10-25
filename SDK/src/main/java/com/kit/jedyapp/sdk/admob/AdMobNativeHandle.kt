@@ -11,8 +11,8 @@ import android.widget.TextView
 import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
-import com.kit.jedyapp.sdk.R
 import com.kit.jedyapp.sdk.api.NativeAdHandle
+import com.kit.jedyapp.sdk.R
 
 internal class AdMobNativeHandle(private val ad: NativeAd) : NativeAdHandle {
     private var closed = false

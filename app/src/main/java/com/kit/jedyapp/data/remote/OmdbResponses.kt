@@ -2,8 +2,8 @@ package com.kit.jedyapp.data.remote
 
 import com.kit.jedyapp.domain.model.Movie
 import com.kit.jedyapp.domain.model.MovieDataException
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 
 @Serializable
 data class OmdbMovieResponse(

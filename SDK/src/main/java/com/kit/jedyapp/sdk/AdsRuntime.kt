@@ -7,8 +7,8 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.kit.jedyapp.sdk.api.AdsProvider
-import com.kit.jedyapp.sdk.policy.ReturnState
 import com.kit.jedyapp.sdk.policy.onForeground
+import com.kit.jedyapp.sdk.policy.ReturnState
 
 /** App-process lifetime owner. Does not retain host Activities. */
 class AdsRuntime(

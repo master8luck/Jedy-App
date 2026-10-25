@@ -11,12 +11,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.*
 import androidx.navigation3.ui.NavDisplay
-import com.kit.jedyapp.R
 import com.kit.jedyapp.feature.details.DetailsRoute
 import com.kit.jedyapp.feature.favorites.FavoritesRoute
 import com.kit.jedyapp.feature.search.SearchRoute
-import com.kit.jedyapp.ui.theme.ThemeMode
+import com.kit.jedyapp.R
 import com.kit.jedyapp.sdk.api.AdsProvider
+import com.kit.jedyapp.ui.theme.ThemeMode
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

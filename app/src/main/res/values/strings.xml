@@ -3,21 +3,19 @@
     <string name="app_brand" translatable="false">JEDY</string>
     <string name="search_title">Search</string>
     <string name="favorites_title">Favorites</string>
-    <string name="details_title">Movie details</string>
     <string name="search_label">Movie title</string>
     <string name="clear_search">Clear</string>
     <string name="search_hint">Search for a movie to get started.</string>
     <string name="search_loading">Searching…</string>
     <string name="search_empty">No movies found. Try another title.</string>
-    <string name="search_result_count">Showing %1$d of %2$d results</string>
+    <plurals name="search_result_count">
+        <item quantity="one">Showing %1$d of %2$d result</item>
+        <item quantity="other">Showing %1$d of %2$d results</item>
+    </plurals>
     <string name="search_network_error">Could not connect. Check your connection and API key configuration, then retry.</string>
     <string name="search_service_error">The movie service rejected this search. Check your API key or try another title.</string>
     <string name="search_unexpected_error">Could not load movies. Please try again.</string>
     <string name="retry">Retry</string>
-    <string name="favorites_placeholder">Saved movies will appear here.</string>
-    <string name="details_placeholder">Movie ID: %1$s</string>
-    <string name="open_favorites">Open favorites</string>
-    <string name="open_sample_movie">Open sample movie</string>
     <string name="back">Back</string>
     <string name="discover_title">Discover</string>
     <string name="discover_subtitle">A small search. A great film.</string>

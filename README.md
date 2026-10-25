@@ -68,8 +68,10 @@ does not need a Google SDK dependency.
 ```
 
 Unit tests cover HTTP mapping/errors, cancellation/debounce/retry/paging,
-details/offline favorites, ad positions, return eligibility and logging policy.
-Emulator tests cover Room uniqueness/removal and long-title/large-font layouts.
+details/offline favorites, favorite updates during loading, ad positions, return eligibility,
+interstitial expiry and logging policy.
+Emulator tests cover Room uniqueness/removal, return-ad lifecycle coordination,
+long-title/large-font layouts and automatic pagination with manual retry.
 Tests use fake keys/data; no real OMDb calls are required by the test suite.
 
 ## Deliberate scope

@@ -2,19 +2,19 @@ package com.kit.jedyapp.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.ui.tooling.preview.Preview
-import com.kit.jedyapp.ui.preview.PreviewMovies
-import com.kit.jedyapp.ui.preview.PreviewScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.kit.jedyapp.R
 import com.kit.jedyapp.domain.model.Movie
+import com.kit.jedyapp.R
+import com.kit.jedyapp.ui.preview.PreviewMovies
+import com.kit.jedyapp.ui.preview.PreviewScreen
 
 @Composable
 fun MoviePoster(url: String?, modifier: Modifier = Modifier) {

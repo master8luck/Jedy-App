@@ -1,50 +1,49 @@
 package com.kit.jedyapp.feature.search
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.kit.jedyapp.sdk.api.AdsProvider
-import com.kit.jedyapp.sdk.ui.NativeAdSlot
-
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.kit.jedyapp.R
+import com.kit.jedyapp.sdk.api.AdsProvider
+import com.kit.jedyapp.sdk.policy.buildAdFeed
+import com.kit.jedyapp.sdk.policy.FeedEntry
+import com.kit.jedyapp.sdk.ui.NativeAdSlot
+import com.kit.jedyapp.ui.components.MovieCard
+import com.kit.jedyapp.ui.components.SectionHeading
+import com.kit.jedyapp.ui.components.StateMessage
 import com.kit.jedyapp.ui.preview.PreviewMovies
 import com.kit.jedyapp.ui.preview.PreviewNativeAd
 import com.kit.jedyapp.ui.preview.PreviewScreen
 import com.kit.jedyapp.ui.preview.ScreenLayoutPreviews
-
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
-import com.kit.jedyapp.R
-import com.kit.jedyapp.sdk.policy.FeedEntry
-import com.kit.jedyapp.sdk.policy.buildAdFeed
-import com.kit.jedyapp.ui.components.MovieCard
-import com.kit.jedyapp.ui.components.SectionHeading
-import com.kit.jedyapp.ui.components.StateMessage
 
 @Composable
 fun SearchRoute(onMovieClick: (String) -> Unit, adsProvider: AdsProvider) {
@@ -68,28 +67,7 @@ fun SearchScreen(
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val listState = rememberSaveable(state.query.trim(), saver = LazyListState.Saver) { LazyListState() }
-    val results = state.content as? SearchContent.Results
-    val loadMore = rememberUpdatedState(onLoadMore)
-    val moviePositions = remember(results?.movies) {
-        results?.movies?.mapIndexed { index, movie -> movie.id to index }?.toMap().orEmpty()
-    }
-
-    LaunchedEffect(listState, results) {
-        if (results == null || results.movies.isEmpty() || results.loadingMore || results.appendError ||
-            results.movies.size >= results.totalResults || results.page >= 100
-        ) return@LaunchedEffect
-        // Count movies, not headers or ads. Start when the last 10% enters the viewport.
-        val threshold = results.movies.size - (results.movies.size + 9) / 10
-        snapshotFlow {
-            listState.layoutInfo.visibleItemsInfo.any { item ->
-                val position = moviePositions[item.key]
-                position != null && position >= threshold &&
-                        item.offset < listState.layoutInfo.viewportEndOffset && item.offset + item.size > 0
-            }
-        }.distinctUntilChanged().collect { nearEnd ->
-            if (nearEnd) loadMore.value()
-        }
-    }
+    LoadMoreOnScroll(listState, state.content as? SearchContent.Results, onLoadMore)
 
     Box(modifier
         .fillMaxSize()
@@ -171,8 +149,9 @@ fun SearchScreen(
                     } else {
                         item(key = RESULT_COUNT_KEY) {
                             Text(
-                                stringResource(
-                                    R.string.search_result_count,
+                                pluralStringResource(
+                                    R.plurals.search_result_count,
+                                    content.totalResults,
                                     content.movies.size,
                                     content.totalResults
                                 ),
@@ -219,6 +198,35 @@ fun SearchScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun LoadMoreOnScroll(
+    listState: LazyListState,
+    results: SearchContent.Results?,
+    onLoadMore: () -> Unit,
+) {
+    val loadMore = rememberUpdatedState(onLoadMore)
+    val moviePositions = remember(results?.movies) {
+        results?.movies?.mapIndexed { index, movie -> movie.id to index }?.toMap().orEmpty()
+    }
+
+    LaunchedEffect(listState, results) {
+        if (results == null || results.movies.isEmpty() || results.loadingMore || results.appendError ||
+            results.movies.size >= results.totalResults || results.page >= 100
+        ) return@LaunchedEffect
+        // Count movies, not headers or ads. Start when the last 10% enters the viewport.
+        val threshold = results.movies.size - (results.movies.size + 9) / 10
+        snapshotFlow {
+            listState.layoutInfo.visibleItemsInfo.any { item ->
+                val position = moviePositions[item.key]
+                position != null && position >= threshold &&
+                        item.offset < listState.layoutInfo.viewportEndOffset && item.offset + item.size > 0
+            }
+        }.distinctUntilChanged().collect { nearEnd ->
+            if (nearEnd) loadMore.value()
         }
     }
 }

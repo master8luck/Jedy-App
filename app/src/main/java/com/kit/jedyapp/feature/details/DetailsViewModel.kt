@@ -8,12 +8,12 @@ import com.kit.jedyapp.domain.repository.MovieRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 data class DetailsUiState(
@@ -60,13 +60,14 @@ class DetailsViewModel @Inject constructor(
             try {
                 // Saved metadata is sufficient for this assignment and works offline.
                 val saved = favorites.observeFavorites().first().firstOrNull { it.id == id }
+                // Set the initial status before loading; later database emissions own updates.
+                mutableState.update { it.copy(isFavorite = saved != null) }
                 val movie = saved ?: movies.getMovie(id)
                 ensureActive()
                 mutableState.update {
                     it.copy(
                         movie = movie,
-                        loading = false,
-                        isFavorite = saved != null
+                        loading = false
                     )
                 }
             } catch (cancelled: CancellationException) {

@@ -2,20 +2,20 @@ package com.kit.jedyapp.di
 
 import com.kit.jedyapp.BuildConfig
 import com.kit.jedyapp.data.remote.OmdbApi
-import okhttp3.logging.HttpLoggingInterceptor
+import dagger.hilt.components.SingletonComponent
+import dagger.hilt.InstallIn
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
+import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
-import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import retrofit2.Retrofit
 
 @Module
 @InstallIn(SingletonComponent::class)

@@ -5,9 +5,9 @@ import com.kit.jedyapp.data.repository.RoomFavoritesRepository
 import com.kit.jedyapp.domain.repository.FavoritesRepository
 import com.kit.jedyapp.domain.repository.MovieRepository
 import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import dagger.hilt.InstallIn
+import dagger.Module
 import javax.inject.Singleton
 
 @Module

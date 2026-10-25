@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.room.Room
 import com.kit.jedyapp.data.local.FavoritesDao
 import com.kit.jedyapp.data.local.MovieDatabase
-import dagger.Module
-import dagger.Provides
-import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import dagger.hilt.InstallIn
+import dagger.Module
+import dagger.Provides
 import javax.inject.Singleton
 
 @Module

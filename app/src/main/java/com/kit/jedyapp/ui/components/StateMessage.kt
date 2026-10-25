@@ -2,13 +2,13 @@ package com.kit.jedyapp.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.ui.tooling.preview.Preview
-import com.kit.jedyapp.ui.preview.PreviewScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kit.jedyapp.ui.preview.PreviewScreen
 
 @Composable
 fun SectionHeading(title: String, subtitle: String) {
