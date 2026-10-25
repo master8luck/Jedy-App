@@ -3,6 +3,18 @@
 An Android movie search app built with Kotlin, Jetpack Compose, Navigation 3,
 Hilt, Retrofit, and Room.
 
+## Screenshots
+
+| Search · Light | Movie details · Dark |
+| :---: | :---: |
+| <img src="docs/screenshots/search-light.png" alt="Movie search results in light theme" width="300" /> | <img src="docs/screenshots/details-dark.png" alt="The Matrix details in dark theme" width="300" /> |
+
+### Tablet layout
+
+Search and movie details displayed side by side in landscape.
+
+<img src="docs/screenshots/tablet-light.png" alt="Light-theme tablet layout with movie search and details side by side" width="900" />
+
 ## Setup and launch
 
 1. Open the project in Android Studio and let Gradle sync finish.
