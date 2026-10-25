@@ -21,13 +21,11 @@ fun StateMessage(
     title: String, message: String, modifier: Modifier = Modifier,
     action: String? = null, onAction: () -> Unit = {},
 ) {
-    Column(modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp),
+    Column(modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        Spacer(Modifier.weight(1f))
         Text(title, style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
         Text(message, style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (action != null) Button(onClick = onAction) { Text(action) }
-        Spacer(Modifier.weight(1f))
     }
 }

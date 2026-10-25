@@ -108,3 +108,32 @@ To enable it when checking native-ad compliance:
 
 List/native view content is clipped to its viewport. This does not attempt to
 clip external SDK windows, ad destinations or full-screen ad experiences.
+
+## Screen previews and short windows
+
+Search uses one LazyColumn: introduction, pinned search input, state message or
+result feed, and paging footer. The introduction/count can scroll away instead
+of consuming all available height in landscape. Favorites also uses one lazy
+list, including its heading and state content. No orientation-specific screen
+implementation or portrait lock is used.
+
+Open these files in Android Studio's Split/Design view:
+
+- `feature/search/SearchScreenPreviews.kt`
+- `feature/details/DetailsScreenPreviews.kt`
+- `feature/favorites/FavoritesScreenPreviews.kt`
+
+Named state providers cover initial/loading/empty/error/content states, saved
+and saving details, removal in progress, paging/loading/error states, missing
+posters and long titles. Search includes one, two, three and many movies.
+The original ad policy is unchanged: fewer than three movies means no native
+slots; three or more means two native slots in the result feed.
+
+The Layout checks group previews a short landscape content area, tablet pane,
+150% font scale and dark theme. These are screen bodies after navigation
+chrome, not complete Activity previews. A taller Search ads preview includes
+three movies and both native slots.
+
+Previews use offline fixtures and labeled native placeholders, without Hilt,
+network requests, storage or Google ad objects. The SDK's fullscreen interstitial
+must be checked on an emulator/device; it is not a Compose screen preview.

@@ -39,7 +39,7 @@ fun DetailsScreen(
             message = stringResource(R.string.details_error_hint),
             action = stringResource(R.string.retry),
             onAction = onRetry,
-            modifier = modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         )
         else -> state.movie?.let { movie ->
             BoxWithConstraints(modifier.fillMaxSize()) {

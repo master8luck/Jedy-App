@@ -84,7 +84,7 @@ fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit, adsProvider: A
             },
         ) { padding ->
             NavDisplay(
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
                 backStack = backStack, onBack = goBack,
                 sceneStrategies = listOf(sceneStrategy),
                 entryDecorators = listOf(

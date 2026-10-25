@@ -30,28 +30,29 @@ fun FavoritesScreen(
     onRemove: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier.fillMaxSize().padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionHeading(stringResource(R.string.favorites_title), stringResource(R.string.favorites_subtitle))
-        if (state.error) Text(stringResource(R.string.save_error), color = MaterialTheme.colorScheme.error)
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        item(key = "heading") {
+            SectionHeading(stringResource(R.string.favorites_title), stringResource(R.string.favorites_subtitle))
+        }
+        if (state.error) item(key = "error") {
+            Text(stringResource(R.string.save_error), color = MaterialTheme.colorScheme.error)
+        }
         when {
-            state.loading -> LinearProgressIndicator(Modifier.fillMaxWidth())
-            state.movies.isEmpty() -> StateMessage(
-                stringResource(R.string.favorites_empty_title), stringResource(R.string.favorites_empty_hint),
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-            )
-            else -> LazyColumn(
-                modifier = Modifier.weight(1f),
-                contentPadding = PaddingValues(bottom = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                items(state.movies, key = { it.id }, contentType = { "movie" }) { movie ->
-                    MovieCard(movie, onClick = { onMovieClick(movie.id) }) {
-                        IconButton(onClick = { onRemove(movie.id) }, enabled = movie.id !in state.removing) {
-                            Icon(painterResource(R.drawable.ic_favorite),
-                                contentDescription = stringResource(R.string.remove_favorite_title, movie.title),
-                                tint = MaterialTheme.colorScheme.primary)
-                        }
+            state.loading -> item(key = "loading") { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+            state.movies.isEmpty() -> item(key = "empty") {
+                StateMessage(stringResource(R.string.favorites_empty_title),
+                    stringResource(R.string.favorites_empty_hint), modifier = Modifier.fillMaxWidth())
+            }
+            else -> items(state.movies, key = { it.id }, contentType = { "movie" }) { movie ->
+                MovieCard(movie, onClick = { onMovieClick(movie.id) }) {
+                    IconButton(onClick = { onRemove(movie.id) }, enabled = movie.id !in state.removing) {
+                        Icon(painterResource(R.drawable.ic_favorite),
+                            contentDescription = stringResource(R.string.remove_favorite_title, movie.title),
+                            tint = MaterialTheme.colorScheme.primary)
                     }
                 }
             }

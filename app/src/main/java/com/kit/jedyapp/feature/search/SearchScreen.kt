@@ -1,5 +1,6 @@
 package com.kit.jedyapp.feature.search
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -13,10 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.kit.jedyapp.R
 import com.kit.jedyapp.sdk.policy.FeedEntry
 import com.kit.jedyapp.sdk.policy.buildAdFeed
@@ -24,6 +27,7 @@ import com.kit.jedyapp.ui.components.MovieCard
 import com.kit.jedyapp.ui.components.SectionHeading
 import com.kit.jedyapp.ui.components.StateMessage
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SearchScreen(
     state: SearchUiState,
@@ -36,55 +40,59 @@ fun SearchScreen(
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val listState = rememberSaveable(state.query.trim(), saver = LazyListState.Saver) { LazyListState() }
-    Column(
-        modifier.fillMaxSize().imePadding().wrapContentWidth(Alignment.CenterHorizontally)
-            .widthIn(max = 840.dp).padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-    ) {
-        SectionHeading(stringResource(R.string.discover_title), stringResource(R.string.discover_subtitle))
-        OutlinedTextField(
-            value = state.query, onValueChange = onQueryChanged, modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.search_label)) }, singleLine = true,
-            shape = MaterialTheme.shapes.large,
-            leadingIcon = { Icon(painterResource(R.drawable.ic_search), null) },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(onSearch = { keyboard?.hide(); onSearch() }),
-            trailingIcon = {
-                if (state.query.isNotEmpty()) IconButton(onClick = { onQueryChanged("") }) {
-                    Icon(painterResource(R.drawable.ic_close), stringResource(R.string.clear_search))
-                }
-            },
-        )
-        when (val content = state.content) {
-            SearchContent.Idle -> StateMessage(
-                stringResource(R.string.search_idle_title), stringResource(R.string.search_hint),
-                Modifier.weight(1f).fillMaxWidth(),
-            )
-            SearchContent.Loading -> {
-                LinearProgressIndicator(Modifier.fillMaxWidth())
-                Text(stringResource(R.string.search_loading), style = MaterialTheme.typography.bodyMedium)
+    Box(modifier.fillMaxSize().imePadding(), contentAlignment = Alignment.TopCenter) {
+        LazyColumn(
+            modifier = Modifier.widthIn(max = 840.dp).fillMaxSize().clipToBounds().testTag("search-list"),
+            state = listState,
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item(key = "introduction", contentType = "heading") {
+                SectionHeading(stringResource(R.string.discover_title), stringResource(R.string.discover_subtitle))
             }
-            is SearchContent.Error -> {
-                val message = when (content.reason) {
-                    SearchError.Network -> R.string.search_network_error
-                    SearchError.Service -> R.string.search_service_error
-                    SearchError.Unexpected -> R.string.search_unexpected_error
+            stickyHeader(key = "search-input") {
+                // An opaque pinned header keeps scrolled native views behind the search field.
+                Surface(Modifier.fillMaxWidth().zIndex(1f), color = MaterialTheme.colorScheme.background) {
+                    SearchInput(
+                        query = state.query,
+                        onQueryChanged = onQueryChanged,
+                        onSearch = { keyboard?.hide(); onSearch() },
+                        modifier = Modifier.padding(vertical = 8.dp),
+                    )
                 }
-                StateMessage(stringResource(R.string.search_error_title), stringResource(message),
-                    Modifier.weight(1f).fillMaxWidth(), stringResource(R.string.retry), onSearch)
             }
-            is SearchContent.Results -> {
-                if (content.movies.isEmpty()) {
-                    StateMessage(stringResource(R.string.search_empty), stringResource(R.string.search_empty_hint),
-                        Modifier.weight(1f).fillMaxWidth())
-                } else {
-                    Text(stringResource(R.string.search_result_count, content.movies.size, content.totalResults),
-                        style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    LazyColumn(
-                        modifier = Modifier.weight(1f).fillMaxWidth().clipToBounds(), state = listState,
-                        contentPadding = PaddingValues(bottom = 20.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
+            when (val content = state.content) {
+                SearchContent.Idle -> item(key = "idle") {
+                    StateMessage(stringResource(R.string.search_idle_title), stringResource(R.string.search_hint),
+                        Modifier.fillMaxWidth())
+                }
+                SearchContent.Loading -> item(key = "loading") {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                        Text(stringResource(R.string.search_loading), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                is SearchContent.Error -> item(key = "error") {
+                    val message = when (content.reason) {
+                        SearchError.Network -> R.string.search_network_error
+                        SearchError.Service -> R.string.search_service_error
+                        SearchError.Unexpected -> R.string.search_unexpected_error
+                    }
+                    StateMessage(stringResource(R.string.search_error_title), stringResource(message),
+                        Modifier.fillMaxWidth(), stringResource(R.string.retry), onSearch)
+                }
+                is SearchContent.Results -> {
+                    if (content.movies.isEmpty()) {
+                        item(key = "empty") {
+                            StateMessage(stringResource(R.string.search_empty), stringResource(R.string.search_empty_hint),
+                                Modifier.fillMaxWidth())
+                        }
+                    } else {
+                        item(key = "result-count") {
+                            Text(stringResource(R.string.search_result_count, content.movies.size, content.totalResults),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                         items(
                             buildAdFeed(content.movies),
                             key = { entry -> when (entry) {
@@ -101,10 +109,8 @@ fun SearchScreen(
                         }
                         if (content.movies.size < content.totalResults && content.page < 100) {
                             item(key = "load-more", contentType = "footer") {
-                                OutlinedButton(
-                                    onClick = onLoadMore, enabled = !content.loadingMore,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
+                                OutlinedButton(onClick = onLoadMore, enabled = !content.loadingMore,
+                                    modifier = Modifier.fillMaxWidth()) {
                                     Text(stringResource(when {
                                         content.loadingMore -> R.string.search_loading
                                         content.appendError -> R.string.load_more_retry
@@ -118,4 +124,27 @@ fun SearchScreen(
             }
         }
     }
+}
+
+@Composable
+private fun SearchInput(
+    query: String,
+    onQueryChanged: (String) -> Unit,
+    onSearch: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = query, onValueChange = onQueryChanged,
+        modifier = modifier.fillMaxWidth().testTag("search-input"),
+        label = { Text(stringResource(R.string.search_label)) }, singleLine = true,
+        shape = MaterialTheme.shapes.large,
+        leadingIcon = { Icon(painterResource(R.drawable.ic_search), null) },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(onSearch = { onSearch() }),
+        trailingIcon = {
+            if (query.isNotEmpty()) IconButton(onClick = { onQueryChanged("") }) {
+                Icon(painterResource(R.drawable.ic_close), stringResource(R.string.clear_search))
+            }
+        },
+    )
 }

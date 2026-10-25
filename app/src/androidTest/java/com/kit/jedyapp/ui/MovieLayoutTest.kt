@@ -2,6 +2,12 @@ package com.kit.jedyapp.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.Text
+import com.kit.jedyapp.feature.search.SearchScreen
+import com.kit.jedyapp.feature.search.SearchUiState
+import com.kit.jedyapp.feature.search.SearchContent
+import com.kit.jedyapp.feature.search.SearchError
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.*
@@ -52,5 +58,61 @@ class MovieLayoutTest {
         compose.onNodeWithText(longTitle).assertIsDisplayed()
         compose.onNodeWithContentDescription("Remove $longTitle from favorites").performClick()
         compose.runOnIdle { assertTrue(removed) }
+    }
+
+    @Test fun searchResultsRemainReachableInShortWindowWithLargeText() {
+        renderSearch(searchResults(12), fontScale = 1.5f)
+        compose.onNodeWithTag("search-list").performScrollToNode(hasText("Movie 9"))
+        compose.onNodeWithText("Movie 9").assertIsDisplayed()
+        compose.onNodeWithTag("search-input").assertIsDisplayed()
+    }
+
+    @Test fun searchErrorRemainsScrollableToRetryInShortWindow() {
+        var retried = false
+        renderSearch(
+            SearchUiState("Matrix", SearchContent.Error(SearchError.Network)),
+            fontScale = 1.5f,
+            onSearch = { retried = true },
+        )
+        compose.onNodeWithText("Retry").performScrollTo().performClick()
+        compose.onNodeWithTag("search-input").assertIsDisplayed()
+        compose.runOnIdle { assertTrue(retried) }
+    }
+
+    @Test fun nativeSlotsAppearOnlyWhenAtLeastThreeMoviesExist() {
+        val state = mutableStateOf(searchResults(2))
+        compose.setContent {
+            JedyAppTheme {
+                Box(Modifier.fillMaxWidth().height(220.dp)) {
+                    SearchScreen(state.value, {}, {}, {},
+                        nativeAd = { Text("Native test slot $it") })
+                }
+            }
+        }
+        compose.onAllNodesWithText("Native test slot", substring = true).assertCountEquals(0)
+        compose.runOnIdle { state.value = searchResults(3) }
+        compose.onNodeWithTag("search-list").performScrollToNode(hasText("Native test slot 1"))
+        compose.onNodeWithText("Native test slot 1").assertIsDisplayed()
+        compose.onNodeWithTag("search-input").assertIsDisplayed()
+    }
+
+    private fun searchResults(count: Int) = SearchUiState(
+        "Matrix", SearchContent.Results(
+            List(count) { Movie("test-$it", "Movie $it", "2020", "movie", null) }, count
+        )
+    )
+
+    private fun renderSearch(state: SearchUiState, fontScale: Float, onSearch: () -> Unit = {}) {
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                JedyAppTheme {
+                    Box(Modifier.fillMaxWidth().height(220.dp)) {
+                        SearchScreen(state, {}, onSearch, {},
+                            nativeAd = { Text("Native test slot $it") })
+                    }
+                }
+            }
+        }
     }
 }
