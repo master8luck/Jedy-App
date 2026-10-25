@@ -164,6 +164,36 @@ class SearchViewModelTest {
         assertEquals(listOf(1, 2, 2), repository.pages)
     }
 
+    @Test
+    fun `repeated pagination triggers share one in flight request`() = runTest(dispatcher) {
+        repository.search = {
+            if (repository.pages.last() == 2) delay(1000)
+            SearchPage(listOf(Movie("tt1", "One", "", "", null)), 20)
+        }
+        viewModel.onQueryChanged("movie"); viewModel.onSearch(); runCurrent()
+        repeat(5) { viewModel.loadMore() }
+        runCurrent()
+        repeat(5) { viewModel.loadMore() }
+        advanceUntilIdle()
+        assertEquals(listOf(1, 2), repository.pages)
+    }
+
+    @Test
+    fun `cancelled append cannot pollute a different search`() = runTest(dispatcher) {
+        repository.search = { query ->
+            if (repository.pages.last() == 2) withContext(NonCancellable) { delay(1000) }
+            SearchPage(listOf(Movie(query, query, "", "", null)), 20)
+        }
+        viewModel.onQueryChanged("old"); viewModel.onSearch(); runCurrent()
+        viewModel.loadMore(); runCurrent()
+        viewModel.onQueryChanged("new"); viewModel.onSearch(); runCurrent()
+        advanceUntilIdle()
+        val result = viewModel.state.value.content as SearchContent.Results
+        assertEquals("new", result.movies.single().id)
+        assertEquals(1, result.page)
+        assertFalse(result.loadingMore)
+    }
+
     private class FakeMovieRepository : MovieRepository {
         val queries = mutableListOf<String>()
         val pages = mutableListOf<Int>()

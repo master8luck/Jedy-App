@@ -96,6 +96,33 @@ class MovieLayoutTest {
         compose.onNodeWithTag("search-input").assertIsDisplayed()
     }
 
+    @Test fun nearEndLoadsOnceAndAppendFailureRequiresManualRetry() {
+        val initial = searchResults(20)
+        val results = (initial.content as SearchContent.Results).copy(totalResults = 40)
+        val state = mutableStateOf(initial.copy(content = results))
+        var requests = 0
+        compose.setContent {
+            JedyAppTheme {
+                Box(Modifier.fillMaxWidth().height(400.dp)) {
+                    SearchScreen(state.value, {}, {}, {}, onLoadMore = {
+                        requests++
+                        state.value = state.value.copy(content = results.copy(loadingMore = true))
+                    })
+                }
+            }
+        }
+        compose.onNodeWithTag("search-list").performScrollToNode(hasText("Movie 10"))
+        compose.runOnIdle { org.junit.Assert.assertEquals(0, requests) }
+        compose.onNodeWithTag("search-list").performScrollToNode(hasText("Movie 18"))
+        compose.waitUntil { requests == 1 }
+        compose.runOnIdle { state.value = initial.copy(content = results.copy(appendError = true)) }
+        compose.onNodeWithTag("search-list").performScrollToNode(hasText("Movie 19"))
+        compose.runOnIdle { org.junit.Assert.assertEquals(1, requests) }
+        compose.onNodeWithTag("search-list").performTouchInput { swipeUp() }
+        compose.onNodeWithText("Retry loading more").assertIsDisplayed().performClick()
+        compose.runOnIdle { org.junit.Assert.assertEquals(2, requests) }
+    }
+
     private fun searchResults(count: Int) = SearchUiState(
         "Matrix", SearchContent.Results(
             List(count) { Movie("test-$it", "Movie $it", "2020", "movie", null) }, count

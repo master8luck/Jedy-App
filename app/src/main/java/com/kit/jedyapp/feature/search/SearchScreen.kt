@@ -8,6 +8,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -40,6 +45,26 @@ fun SearchScreen(
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val listState = rememberSaveable(state.query.trim(), saver = LazyListState.Saver) { LazyListState() }
+    val results = state.content as? SearchContent.Results
+    val loadMore = rememberUpdatedState(onLoadMore)
+    val moviePositions = remember(results?.movies) {
+        results?.movies?.mapIndexed { index, movie -> movie.id to index }?.toMap().orEmpty()
+    }
+    LaunchedEffect(listState, results) {
+        if (results == null || results.movies.isEmpty() || results.loadingMore || results.appendError ||
+            results.movies.size >= results.totalResults || results.page >= 100) return@LaunchedEffect
+        // Count movies, not headers or ads. Start when the last 10% enters the viewport.
+        val threshold = results.movies.size - (results.movies.size + 9) / 10
+        snapshotFlow {
+            listState.layoutInfo.visibleItemsInfo.any { item ->
+                val position = moviePositions[item.key]
+                position != null && position >= threshold &&
+                    item.offset < listState.layoutInfo.viewportEndOffset && item.offset + item.size > 0
+            }
+        }.distinctUntilChanged().collect { nearEnd ->
+            if (nearEnd) loadMore.value()
+        }
+    }
     Box(modifier.fillMaxSize().imePadding(), contentAlignment = Alignment.TopCenter) {
         LazyColumn(
             modifier = Modifier.widthIn(max = 840.dp).fillMaxSize().clipToBounds().testTag("search-list"),
