@@ -44,9 +44,11 @@ The assignment leaves these behaviors open to interpretation:
 - Indexes are zero-based in the final feed: movie, ad, movie, ad, movie.
   Both slots are present only when there are at least three movie results.
   Paging does not add further ad slots.
-- Initial launch is excluded. The second later process-foreground entry is the
-  one interstitial opportunity. The counter is persisted, including relaunches.
-  Rotation, resizing and internal navigation do not count.
+- Each app launch starts at zero. The second background-to-foreground return
+  offers at most one interstitial in that launch. Return history is kept only
+  in memory and resets after process death/restart or explicitly closing the host.
+  Rotation, resizing and internal navigation do not reset or increment the counter.
+  There is no one-hour reset in this scope.
 - If the interstitial is unavailable at that return, the opportunity is consumed
   and skipped. It is never shown later in the session.
 - Native no-fill hides the slot. Ad objects are released on disposal, including
@@ -78,15 +80,15 @@ on demand. The project keeps two modules instead of speculative feature modules.
 
 ## Replaying the return-ad test
 
-The interstitial opportunity is once per installation's stored history, not
-every second return. A previous test can consume it even if a later session
-has a loaded ad. Debug lifecycle messages use the Logcat tag `JedyAds`.
+The interstitial opportunity is once per app launch, on its second return.
+Backgrounding and reopening alone preserves that launch's counter. Restarting
+the process or explicitly closing the host gives the next launch a fresh counter.
+Debug lifecycle messages use the Logcat tag `JedyAds`.
 
 To replay without deleting favorites, appearance or the API key:
 
 ```shell
 adb shell am force-stop com.kit.jedyapp
-adb shell run-as com.kit.jedyapp rm -f shared_prefs/ad_returns.xml
 adb shell am start -n com.kit.jedyapp/.MainActivity
 ```
 

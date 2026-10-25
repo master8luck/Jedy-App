@@ -26,9 +26,22 @@ class AdPoliciesTest {
         }
         assertEquals(listOf(false, false, true, false, false, false), decisions)
     }
-    @Test fun `persisted return count prevents another ad after restart`() {
-        assertTrue(onForeground(ReturnState(true, 1)).eligible)
-        assertFalse(onForeground(ReturnState(true, 2)).eligible)
-        assertFalse(onForeground(ReturnState(true, 3)).eligible)
+    @Test fun `each new launch gets its own second return opportunity`() {
+        repeat(2) {
+            var state = ReturnState()
+            val decisions = (0..4).map {
+                onForeground(state).also { decision -> state = decision.state }.eligible
+            }
+            assertEquals(listOf(false, false, true, false, false), decisions)
+        }
+    }
+
+    @Test fun `backgrounding within a launch does not reset consumption`() {
+        var state = ReturnState(true, 2)
+        repeat(5) {
+            val decision = onForeground(state)
+            assertFalse(decision.eligible)
+            state = decision.state
+        }
     }
 }

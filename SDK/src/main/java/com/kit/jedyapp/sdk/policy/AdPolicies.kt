@@ -16,7 +16,10 @@ fun <T> buildAdFeed(items: List<T>): List<FeedEntry<T>> = buildList {
 data class ReturnState(val launched: Boolean = false, val returns: Int = 0)
 data class ReturnDecision(val state: ReturnState, val eligible: Boolean)
 
-/** Called only on process foreground, never screen navigation or configuration changes. */
+/**
+ * State belongs to one app launch and starts fresh after a restart or explicit close.
+ * Called only on process foreground, never screen navigation or configuration changes.
+ */
 fun onForeground(state: ReturnState): ReturnDecision {
     if (!state.launched) return ReturnDecision(ReturnState(launched = true), false)
     val count = (state.returns + 1).coerceAtMost(3)
