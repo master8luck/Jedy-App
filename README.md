@@ -32,6 +32,16 @@ Search and movie details displayed side by side in landscape.
 `local.properties` is ignored by Git. Rebuild the app after changing the key.
 Google test ads are configured already; an AdMob account is not required.
 
+## Build outputs
+
+Build APKs with `./gradlew :app:assembleDebug :app:assembleRelease`, or app bundles
+with `./gradlew :app:bundleDebug :app:bundleRelease` (`gradlew.bat` on Windows).
+
+Files use the format `JedyApp-<variant>-v<versionName>(<versionCode>).apk` or `.aab`,
+for example `JedyApp-debug-v1.0(1).apk`. APKs are under
+`app/build/outputs/apk/<variant>/`; bundles are under
+`app/build/outputs/bundle/<variant>/`. Release signing is not configured.
+
 ## Features
 
 - Search movies by title, with automatic pagination and manual retry.

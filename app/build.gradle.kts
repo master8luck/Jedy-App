@@ -1,3 +1,10 @@
+import com.android.build.api.artifact.SingleArtifact
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import java.util.Properties
 
 plugins {
@@ -99,4 +106,44 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+// Keep the final bundle registered with AGP so tooling resolves its renamed path.
+abstract class RenameBundleTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val inputBundle: RegularFileProperty
+
+    @get:OutputFile
+    abstract val outputBundle: RegularFileProperty
+
+    @TaskAction
+    fun renameBundle() {
+        val target = outputBundle.get().asFile
+        target.parentFile.mkdirs()
+        inputBundle.get().asFile.copyTo(target, overwrite = true)
+    }
+}
+
+androidComponents {
+    onVariants(selector().all()) { variant ->
+        // This app produces one universal APK per variant (no ABI or density splits).
+        val output = variant.outputs.single()
+        val artifactName = output.versionName.zip(output.versionCode) { name, code ->
+            "JedyApp-${variant.name}-v$name($code)"
+        }
+        output.outputFileName.set(artifactName.map { "$it.apk" })
+
+        val renameBundle = tasks.register<RenameBundleTask>(
+            "rename${variant.name.replaceFirstChar { it.uppercaseChar() }}Bundle"
+        )
+        variant.artifacts.use(renameBundle)
+            .wiredWithFiles(RenameBundleTask::inputBundle, RenameBundleTask::outputBundle)
+            .toTransform(SingleArtifact.BUNDLE)
+        // Set this after wiring: AGP supplies its own default output during registration.
+        renameBundle.configure {
+            outputBundle.set(layout.buildDirectory.file(
+                artifactName.map { "outputs/bundle/${variant.name}/$it.aab" }
+            ))
+        }
+    }
 }
