@@ -6,11 +6,13 @@ sealed interface FeedEntry<out T> {
 }
 
 /** Zero-based positions in the final feed: movie, ad, movie, ad, movie. */
-fun <T> buildAdFeed(items: List<T>): List<FeedEntry<T>> = buildList {
-    items.forEachIndexed { index, item ->
-        add(FeedEntry.Content(item))
-        if (items.size >= 3 && index < 2) add(FeedEntry.Native(index))
+fun <T> buildAdFeed(items: List<T>): List<FeedEntry<T>> {
+    val feed = items.mapTo(mutableListOf<FeedEntry<T>>()) { FeedEntry.Content(it) }
+    if (items.size >= 3) {
+        feed.add(1, FeedEntry.Native(slot = 0))
+        feed.add(3, FeedEntry.Native(slot = 1))
     }
+    return feed
 }
 
 data class ReturnState(val launched: Boolean = false, val returns: Int = 0)

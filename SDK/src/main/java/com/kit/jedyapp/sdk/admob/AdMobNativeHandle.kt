@@ -21,12 +21,14 @@ internal class AdMobNativeHandle(private val ad: NativeAd) : NativeAdHandle {
         val root = NativeAdView(context)
         val density = context.resources.displayMetrics.density
         fun dp(value: Int) = (value * density).toInt()
+
         val column = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(16), dp(16), dp(16))
             setBackgroundColor(surfaceColor)
             layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
+
         fun label(text: String?, size: Float, bold: Boolean = false): TextView =
             TextView(context).apply {
                 this.text = text
@@ -36,9 +38,11 @@ internal class AdMobNativeHandle(private val ad: NativeAd) : NativeAdHandle {
                 setPadding(0, dp(4), dp(28), dp(4))
                 column.addView(this)
             }
+
         root.addView(column)
         label(context.getString(R.string.ad_attribution), 12f, true)
         root.headlineView = label(ad.headline, 18f, true)
+
         ad.advertiser?.let { root.advertiserView = label(it, 12f) }
         ad.icon?.drawable?.let { drawable ->
             val icon = ImageView(context).apply {
@@ -48,12 +52,14 @@ internal class AdMobNativeHandle(private val ad: NativeAd) : NativeAdHandle {
             column.addView(icon)
             root.iconView = icon
         }
+
         val media = MediaView(context).apply {
             layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(160))
             mediaContent = ad.mediaContent
         }
         column.addView(media)
         root.mediaView = media
+
         ad.body?.let { root.bodyView = label(it, 14f) }
         ad.callToAction?.let { callToAction ->
             val button = Button(context).apply { text = callToAction }

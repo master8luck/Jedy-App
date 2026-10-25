@@ -25,7 +25,6 @@ class AdsRuntime(
         if (started) return
         started = true
         provider.initialize()
-        provider.preloadInterstitial()
         application.registerActivityLifecycleCallbacks(this)
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
