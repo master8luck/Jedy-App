@@ -30,11 +30,18 @@ fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit, adsProvider: A
     }
     val favoritesSelected = backStack.any { it == Favorites }
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val sceneStrategy = remember(maxWidth >= 900.dp) { TwoPaneSceneStrategy(maxWidth >= 900.dp) }
+        val sceneStrategy =
+            remember(maxWidth >= 900.dp) { TwoPaneSceneStrategy(maxWidth >= 900.dp) }
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("JEDY", style = MaterialTheme.typography.titleLarge, letterSpacing = 4.sp) },
+                    title = {
+                        Text(
+                            stringResource(R.string.app_brand),
+                            style = MaterialTheme.typography.titleLarge,
+                            letterSpacing = 4.sp
+                        )
+                    },
                     navigationIcon = {
                         if (backStack.lastOrNull() is MovieDetails) IconButton(onClick = goBack) {
                             Icon(painterResource(R.drawable.ic_back), stringResource(R.string.back))
@@ -43,9 +50,14 @@ fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit, adsProvider: A
                     actions = {
                         Box {
                             IconButton(onClick = { themeMenu = true }) {
-                                Icon(painterResource(R.drawable.ic_theme), stringResource(R.string.appearance))
+                                Icon(
+                                    painterResource(R.drawable.ic_theme),
+                                    stringResource(R.string.appearance)
+                                )
                             }
-                            DropdownMenu(expanded = themeMenu, onDismissRequest = { themeMenu = false }) {
+                            DropdownMenu(
+                                expanded = themeMenu,
+                                onDismissRequest = { themeMenu = false }) {
                                 ThemeMode.entries.forEach { mode ->
                                     val label = when (mode) {
                                         ThemeMode.System -> R.string.theme_system
@@ -54,7 +66,12 @@ fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit, adsProvider: A
                                     }
                                     DropdownMenuItem(
                                         text = { Text(stringResource(label)) },
-                                        leadingIcon = { RadioButton(selected = theme == mode, onClick = null) },
+                                        leadingIcon = {
+                                            RadioButton(
+                                                selected = theme == mode,
+                                                onClick = null
+                                            )
+                                        },
                                         onClick = { onThemeChange(mode); themeMenu = false },
                                     )
                                 }
@@ -84,7 +101,10 @@ fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit, adsProvider: A
             },
         ) { padding ->
             NavDisplay(
-                modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .consumeWindowInsets(padding),
                 backStack = backStack, onBack = goBack,
                 sceneStrategies = listOf(sceneStrategy),
                 entryDecorators = listOf(
@@ -92,9 +112,23 @@ fun JedyApp(theme: ThemeMode, onThemeChange: (ThemeMode) -> Unit, adsProvider: A
                     rememberViewModelStoreNavEntryDecorator(),
                 ),
                 entryProvider = entryProvider {
-                    entry<Search>(metadata = metadata { put(ListPane, true) }) { SearchRoute(onMovieClick = openMovie, adsProvider = adsProvider) }
-                    entry<Favorites>(metadata = metadata { put(ListPane, true) }) { FavoritesRoute(onMovieClick = openMovie) }
-                    entry<MovieDetails>(metadata = metadata { put(DetailPane, true) }) { destination -> DetailsRoute(destination.imdbId) }
+                    entry<Search>(metadata = metadata { put(ListPane, true) }) {
+                        SearchRoute(
+                            onMovieClick = openMovie,
+                            adsProvider = adsProvider
+                        )
+                    }
+                    entry<Favorites>(metadata = metadata { put(ListPane, true) }) {
+                        FavoritesRoute(
+                            onMovieClick = openMovie
+                        )
+                    }
+                    entry<MovieDetails>(metadata = metadata {
+                        put(
+                            DetailPane,
+                            true
+                        )
+                    }) { destination -> DetailsRoute(destination.imdbId) }
                 },
             )
         }

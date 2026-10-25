@@ -77,6 +77,7 @@ class SearchViewModel @Inject constructor(
             mutableState.update { it.copy(content = SearchContent.Idle) }
             return
         }
+
         mutableState.update { it.copy(content = SearchContent.Loading) }
         searchJob = viewModelScope.launch {
             if (debounce) delay(350)

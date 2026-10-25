@@ -2,6 +2,7 @@ package com.kit.jedyapp.data.remote
 
 import com.kit.jedyapp.BuildConfig
 import com.kit.jedyapp.di.NetworkModule
+import com.kit.jedyapp.di.createHttpLoggingInterceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor

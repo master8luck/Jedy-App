@@ -1,6 +1,6 @@
 package com.kit.jedyapp.data.repository
 
-import com.kit.jedyapp.data.mapper.toMovie
+import com.kit.jedyapp.data.remote.toMovie
 import com.kit.jedyapp.data.remote.OmdbApi
 import com.kit.jedyapp.domain.model.Movie
 import com.kit.jedyapp.domain.model.MovieDataException

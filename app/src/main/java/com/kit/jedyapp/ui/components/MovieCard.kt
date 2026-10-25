@@ -2,6 +2,9 @@ package com.kit.jedyapp.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
+import androidx.compose.ui.tooling.preview.Preview
+import com.kit.jedyapp.ui.preview.PreviewMovies
+import com.kit.jedyapp.ui.preview.PreviewScreen
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,4 +51,26 @@ fun MovieCard(
             trailing?.invoke()
         }
     }
+}
+
+@Preview(name = "Movie card", widthDp = 360, heightDp = 160)
+@Composable
+private fun MovieCardPreview() {
+    PreviewScreen { MovieCard(PreviewMovies.movies(1).first(), {}) }
+}
+
+@Preview(name = "Long title with trailing action", widthDp = 320, heightDp = 260, fontScale = 1.5f)
+@Composable
+private fun MovieCardLongTitlePreview() {
+    PreviewScreen {
+        MovieCard(PreviewMovies.longMovie, {}, trailing = {
+            TextButton(onClick = {}) { Text("Remove") }
+        })
+    }
+}
+
+@Preview(name = "Poster placeholder", widthDp = 160, heightDp = 240)
+@Composable
+private fun MoviePosterPreview() {
+    PreviewScreen { MoviePoster(null, Modifier.width(160.dp)) }
 }

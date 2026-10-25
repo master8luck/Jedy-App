@@ -39,7 +39,9 @@ class DetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 favorites.observeFavorites().collect { saved ->
-                    mutableState.update { it.copy(isFavorite = saved.any { movie -> movie.id == currentId }) }
+                    mutableState.update {
+                        it.copy(isFavorite = saved.any { movie -> movie.id == currentId })
+                    }
                 }
             } catch (cancelled: CancellationException) {
                 throw cancelled
@@ -60,7 +62,13 @@ class DetailsViewModel @Inject constructor(
                 val saved = favorites.observeFavorites().first().firstOrNull { it.id == id }
                 val movie = saved ?: movies.getMovie(id)
                 ensureActive()
-                mutableState.update { it.copy(movie = movie, loading = false, isFavorite = saved != null) }
+                mutableState.update {
+                    it.copy(
+                        movie = movie,
+                        loading = false,
+                        isFavorite = saved != null
+                    )
+                }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
@@ -77,7 +85,8 @@ class DetailsViewModel @Inject constructor(
         mutableState.update { it.copy(saving = true, saveError = false) }
         viewModelScope.launch {
             try {
-                if (snapshot.isFavorite) favorites.removeFavorite(movie.id) else favorites.addFavorite(movie)
+                if (snapshot.isFavorite) favorites.removeFavorite(movie.id)
+                else favorites.addFavorite(movie)
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {

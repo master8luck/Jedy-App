@@ -119,9 +119,9 @@ implementation or portrait lock is used.
 
 Open these files in Android Studio's Split/Design view:
 
-- `feature/search/SearchScreenPreviews.kt`
-- `feature/details/DetailsScreenPreviews.kt`
-- `feature/favorites/FavoritesScreenPreviews.kt`
+- `feature/search/SearchScreen.kt`
+- `feature/details/DetailsScreen.kt`
+- `feature/favorites/FavoritesScreen.kt`
 
 Named state providers cover initial/loading/empty/error/content states, saved
 and saving details, removal in progress, paging/loading/error states, missing

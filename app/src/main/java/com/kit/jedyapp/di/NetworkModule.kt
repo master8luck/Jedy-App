@@ -2,7 +2,7 @@ package com.kit.jedyapp.di
 
 import com.kit.jedyapp.BuildConfig
 import com.kit.jedyapp.data.remote.OmdbApi
-import com.kit.jedyapp.data.remote.createHttpLoggingInterceptor
+import okhttp3.logging.HttpLoggingInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -56,4 +56,11 @@ object NetworkModule {
             .build()
             .create(OmdbApi::class.java)
 
+}
+
+internal fun createHttpLoggingInterceptor(
+    debug: Boolean,
+    logger: HttpLoggingInterceptor.Logger = HttpLoggingInterceptor.Logger.DEFAULT,
+): HttpLoggingInterceptor = HttpLoggingInterceptor(logger).apply {
+    level = if (debug) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
 }
